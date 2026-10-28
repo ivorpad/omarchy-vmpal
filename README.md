@@ -6,6 +6,35 @@ If you only want to try Omarchy on a Mac, use [Try Omarchy](https://github.com/o
 
 Tested on 2026-10-28: MacBook Pro M3 Pro, macOS 27.0.1, VMPal 0.97, Alpine 3.23.7, Arch Linux ARM kernel 7.3.0, omarchy-mac 4.0.3rc4 (rc channel), Qt 6.12.0, Mesa 26.2.5. Hyprland reports `virgl (Apple M3 Pro)` as its renderer.
 
+## What works
+
+Checked in the running VM on 2026-10-28. "Not tested" means installed but not exercised.
+
+Works:
+- The desktop: Hyprland on the GPU, 2880×1696 at 120 Hz for a 1440×848 window, at scale 2.
+- Omarchy's top bar, menu (Super + Space) and notifications, once the Qt 6.12 fix below is in.
+- The terminal (Super + Return), Chromium, and the Tokyo Night theme.
+- The screensaver after 150 s idle, the lock screen after 300 s, and unlocking it with the password.
+- `grim`, which Omarchy's screenshots use, captures the full 2880×1696 display. The screenshot keys weren't tried.
+- The Mac's battery shows up in Linux: VMPal Tools give it an `AC` and a `BAT0` that report the Mac's.
+- VMPal's shared folder (`/media/VMPal`), VMPal Tools (system and desktop parts), and SSH.
+- Keys: the right ⌘ is Super; the left ⌘ sends Ctrl for Mac shortcuts.
+
+Doesn't work:
+- Sound, out or in. VMPal gives the VM a virtio sound device, but Arch Linux ARM's kernel has no `virtio_snd` driver, so Linux finds no sound card. Omarchy's own `linux-omarchy` kernel (7.3, in its ARM repo) might have it; not tried.
+- Screen recording. `gpu-screen-recorder` stops with `no usable output found`, and `wf-recorder` hangs without writing a file.
+- Vulkan, and the games and apps that need it: VMPal's VirGL offers OpenGL only, and Hyprland gets OpenGL ES 3.0.
+- Wi-Fi and Bluetooth: the VM has neither, only VMPal's virtual Ethernet, so those panels have nothing to manage.
+- Omarchy's Windows VM: it needs KVM, and `/dev/kvm` doesn't exist while VMPal's nested virtualization is off, the default. `bin/vmpal set Omarchy --nested on` may change that; not tried.
+- Hardware video decoding: there's no decoder device, so video plays on the CPU.
+- Dictation: there's no microphone. VMPal's is off by default, and there's no sound card anyway.
+- Suspend, and Linux apps as separate Mac windows, which VMPal does for GNOME only.
+
+Set up but not tested:
+- Clipboard and drag and drop between the Mac and Omarchy. Both are on in VMPal, and VMPal Tools have Hyprland support for them.
+- Touch ID. VMPal Tools added the fingerprint rule for Omarchy's lock screen, which now asks for a finger, but VMPal's Touch ID setting is unset.
+- Docker (its socket is active), Neovim, LibreOffice, Obsidian, LocalSend, mpv, text extraction (tesseract is installed), web apps, and `omarchy update`.
+
 ## Before you start
 
 - macOS 27: VMPal says GPU acceleration for Linux needs it.
@@ -136,10 +165,8 @@ In VMPal the right ⌘ is Super: right ⌘ + Space opens Omarchy's menu, right �
 
 ## Limitations
 
-VMPal:
-- No Vulkan: VMPal's VirGL has no Venus. Hyprland runs on OpenGL ES 3.0 (a 3.2 context failed).
-- A GPU-accelerated Linux VM can't suspend; quitting shuts it down. Snapshots need it shut down.
-- Linux apps as separate Mac windows only works with GNOME.
+VMPal (beyond the list above):
+- A GPU-accelerated Linux VM has to be shut down for a snapshot, and quitting VMPal shuts it down.
 - `vmpal set --user` rejected the user name in VMPal 0.97, so VMPal couldn't keep the password for its sign-in feature. Its Linux Touch ID option wasn't tried.
 - VMPal shares the Mac's `~/Downloads` read-write into the VM by default (`/media/VMPal/Downloads`).
 - Linux sees a 931 GiB disk; VMPal caps the VM at the `--disk` size, and Linux doesn't know about the cap.
