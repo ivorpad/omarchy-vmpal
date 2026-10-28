@@ -11,7 +11,7 @@ Tested on 2026-10-28: MacBook Pro M3 Pro, macOS 27.0.1, VMPal 0.97, Alpine 3.23.
 Checked in the running VM on 2026-10-28. "Not tested" means installed but not exercised.
 
 Works:
-- The desktop: Hyprland on the GPU, 2880×1696 at 120 Hz for a 1440×848 window, at scale 2.
+- The desktop: Hyprland on the GPU at 120 Hz. 2880×1696 at scale 2 in a 1440×848 window, and full screen on a 2560×1440 monitor, 2560×1440 at scale 1 once the mode is set by hand (see [Resolution](#resolution)).
 - Omarchy's top bar, menu (Super + Space) and notifications, once the Qt 6.12 fix below is in.
 - The terminal (Super + Return), Chromium, and the Tokyo Night theme.
 - The screensaver after 150 s idle, the lock screen after 300 s, and unlocking it with the password.
@@ -28,6 +28,7 @@ Doesn't work:
 - Omarchy's Windows VM: it needs KVM, and `/dev/kvm` doesn't exist while VMPal's nested virtualization is off, the default. `bin/vmpal set Omarchy --nested on` may change that; not tried.
 - Hardware video decoding: there's no decoder device, so video plays on the CPU.
 - Dictation: there's no microphone. VMPal's is off by default, and there's no sound card anyway.
+- Following the window's size: when VMPal's window changes, Hyprland keeps its old mode (see [Resolution](#resolution)).
 - Suspend, and Linux apps as separate Mac windows, which VMPal does for GNOME only.
 
 Set up but not tested:
@@ -150,10 +151,25 @@ The last `pacman` line installs Omarchy's own Quickshell build instead of Arch L
 
 SDDM asks for the password at every boot; there is no autologin. Once in, two settings make it fit VMPal's display and a non-US keyboard. Hyprland reloads them on save.
 
-- `~/.config/hypr/monitors.lua`: `local omarchy_monitor_scale = 2`. VMPal makes the display twice the window's size in points, and Omarchy's `auto` picks 1.
+- `~/.config/hypr/monitors.lua`: `local omarchy_monitor_scale = 2`. VMPal makes the display twice the window's size in points, and Omarchy's `auto` picks 1. For a non-Retina monitor, see [Resolution](#resolution).
 - `~/.config/hypr/input.lua`: for example `hl.config({ input = { kb_layout = "es" } })`.
 
 In VMPal the right ⌘ is Super: right ⌘ + Space opens Omarchy's menu, right ⌘ + Return a terminal. The left ⌘ stays a Mac shortcut key (⌘C sends Ctrl+C).
+
+## Resolution
+
+VMPal sizes the VM's display to its window, not to the Mac's screen: twice the window's size in points. A 1440×848 window gets a 2880×1696 display, and full screen on a 2560×1440 monitor VMPal offers 5120×2880.
+
+Hyprland doesn't follow those changes. VMPal Tools resize GNOME, COSMIC and Xfce when the window changes, but not Hyprland, and `hyprctl reload` doesn't pick up the new mode either. Going full screen left Omarchy at 2880×1696.
+
+Set the mode yourself, in a terminal in the VM. Omarchy 4's Hyprland config is Lua, so `hyprctl keyword` refuses and `hyprctl eval` takes its place. For a non-Retina 2560×1440 monitor in full screen, its native resolution at scale 1:
+
+```sh
+hyprctl eval 'hl.monitor({ output = "Virtual-1", mode = "2560x1440@120", position = "0x0", scale = 1 })'
+hyprctl eval 'hl.env("GDK_SCALE", "1")'
+```
+
+The second line keeps GTK apps opened afterwards from doubling in size. Both last until you log out. To keep them, change `mode = "preferred"` to `mode = "2560x1440@120"` in the `hl.monitor` line of `~/.config/hypr/monitors.lua`, and set `omarchy_monitor_scale` and `omarchy_gdk_scale` to 1. A fixed mode looks wrong in a smaller window or on a Retina screen; there, keep scale 2 and VMPal's size, which should be 3024×1964 full screen on a 14-inch MacBook Pro.
 
 ## What went wrong, and the fix for each
 
