@@ -1,0 +1,11 @@
+#!/bin/sh
+# Screenshot of the Omarchy desktop taken inside the VM with grim, as the user
+# signed in to it (VM_DESKTOP_USER), written to $1 on the Mac. Needs VM_IP.
+set -e
+out=${1:?usage: vmshot OUTPUT.png}
+user=${VM_DESKTOP_USER:?set VM_DESKTOP_USER to the desktop user in the VM}
+"$(dirname "$0")/vmssh" "u=$user"'; rt=/run/user/$(id -u "$u")
+  s=$(ls "$rt" | grep -E "^wayland-[0-9]+$" | head -1)
+  [ -n "$s" ] || { echo "no Wayland session for $u" >&2; exit 1; }
+  runuser -u "$u" -- env XDG_RUNTIME_DIR="$rt" WAYLAND_DISPLAY="$s" grim -t png -' > "$out"
+file "$out"

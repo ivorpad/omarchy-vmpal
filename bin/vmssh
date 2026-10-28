@@ -1,0 +1,9 @@
+#!/bin/sh
+# SSH into the VM as root with its own key. VM_IP is the VM's address (the
+# Alpine installer's, then the installed system's); VM_KEY and VM_USER change
+# the key and the user. Host keys aren't kept: the installer and the installed
+# system answer on the same address with different keys.
+[ -n "${VM_IP:-}" ] || { echo "Set VM_IP to the VM's address." >&2; exit 2; }
+exec ssh -i "${VM_KEY:-$HOME/.ssh/omarchy-vmpal_ed25519}" -o IdentitiesOnly=yes \
+  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
+  -o ConnectTimeout=8 -o ServerAliveInterval=15 "${VM_USER:-root}@$VM_IP" "$@"

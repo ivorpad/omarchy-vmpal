@@ -1,0 +1,5 @@
+guest/omacvm.env
+*.iso
+*.iso.sha256
+*.iso.asc
+__pycache__/

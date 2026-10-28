@@ -1,0 +1,4 @@
+#!/bin/sh
+# VMPal's command line without installing it: the app's VM helper takes --cli.
+# Same commands as an installed `vmpal`: vmpal help, vmpal systems, vmpal create ...
+exec "/Applications/VMPal.app/Contents/Helpers/VMPalMachine.app/Contents/MacOS/VMPalMachine" --cli "$@"

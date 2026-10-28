@@ -1,0 +1,10 @@
+[Trigger]
+Type = Package
+Operation = Install
+Operation = Upgrade
+Target = omarchy
+
+[Action]
+Description = Omarchy shell: cap QtQuick imports at 6.11 (Qt 6.12 Color type clash)
+When = PostTransaction
+Exec = /usr/local/lib/omarchy-vmpal/pin-qtquick.sh
